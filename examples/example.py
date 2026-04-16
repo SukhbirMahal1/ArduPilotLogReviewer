@@ -1,4 +1,4 @@
-from ardupilot_log_reviewer.ArduPilotLogReviewer import ArduPilotLogReviewer
+from ardupilot_log_reviewer import ArduPilotLogReviewer
 
 filedate = "2026-03-26"
 filepath = f"logs/{filedate}.BIN"

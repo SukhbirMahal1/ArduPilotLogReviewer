@@ -14,7 +14,7 @@ pip install -e .
 ## Usage
 
 ```python
-from ardupilot_log_reviewer.ArduPilotLogReviewer import ArduPilotLogReviewer
+from ardupilot_log_reviewer import ArduPilotLogReviewer
 
 filedate = "YYYY-MM-DD"
 filepath = "path/to/your/log.BIN"
