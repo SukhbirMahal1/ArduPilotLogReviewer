@@ -189,7 +189,12 @@ class ArduPilotLogReviewer:
         df = self.get_msg(msg=msg)
         bat_groups = df.groupby('Inst')
 
-        q_m_bat_volt_min = self.get_msg('PARM').loc[self.get_msg('PARM')["Name"] == 'Q_M_BAT_VOLT_MIN', "Value"].iloc[0]
+        try:
+            bat_volt_min = self.get_msg('PARM').query("Name == 'Q_M_BAT_VOLT_MIN'")["Value"].iloc[0]
+            bat_volt_min_label = 'Q_M_BAT_VOLT_MIN'
+        except:
+            bat_volt_min = self.get_msg('PARM').query("Name == 'MOT_BAT_VOLT_MIN'")["Value"].iloc[0]
+            bat_volt_min_label = 'MOT_BAT_VOLT_MIN'
 
         plt.figure(figsize=(14, 2))
 
@@ -199,7 +204,7 @@ class ArduPilotLogReviewer:
 
             plt.subplot(1, 2, 1)
             plt.plot(idx['TimeUS'] / 1e6, idx['VoltR'], label=f'BAT[{i}].VoltR')
-            plt.axhline(q_m_bat_volt_min, color='red', label='Q_M_BAT_VOLT_MIN')
+            plt.axhline(bat_volt_min, color='red', label=bat_volt_min_label)
             plt.xlabel('Time [s]')
             plt.ylabel("Voltage [V]")
             plt.grid(1)
