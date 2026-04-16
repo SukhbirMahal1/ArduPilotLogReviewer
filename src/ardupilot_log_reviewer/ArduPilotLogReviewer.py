@@ -6,7 +6,7 @@ from pymavlog import MavLog
 from scipy import signal
 
 class ArduPilotLogReviewer:
-    def __init__(self, filedate:str, filepath:str, MOTOR_RCOU_CH:list, auto_detect_flight:bool=False, T_MIN:int=None, T_MAX:int=None, save_plots:bool=False, show_plots:bool=False):
+    def __init__(self, filedate:str, filepath:str, MOTOR_RCOU_CH:list, auto_detect_flight:bool=False, T_MIN:int=None, T_MAX:int=None, ESC_CONT_A:int=None, ESC_BURST_A:int=None, save_plots:bool=False, show_plots:bool=False):
         self.filedate = filedate
         self.filepath = filepath
         self.MOTOR_RCOU_CH = MOTOR_RCOU_CH
@@ -18,8 +18,8 @@ class ArduPilotLogReviewer:
 
         # constants
         self.DES_HOVER_PWM = (1600, 1700)
-        self.ESC_CONT_A = 70
-        self.ESC_BURST_A = 80
+        self.ESC_CONT_A = ESC_CONT_A
+        self.ESC_BURST_A = ESC_BURST_A
 
         # directories
         os.makedirs(f'csvs/{self.filedate}', exist_ok=True)

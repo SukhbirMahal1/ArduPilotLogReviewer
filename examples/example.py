@@ -11,6 +11,8 @@ reviewer = ArduPilotLogReviewer(
     auto_detect_flight=False,
     T_MIN=2675,
     T_MAX=2800,
+    ESC_CONT_A=70,
+    ESC_BURST_A=80,
     save_plots=True,
     show_plots=False
 )
