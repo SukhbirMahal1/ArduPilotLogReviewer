@@ -6,7 +6,7 @@ A Python-based tool for automated analysis and visualisation of ArduPilot DataFl
 
 - **Automated Flight Detection:** Detects flight start and end times based on motor output.
 - **Plotting:**
-  - **ATT:** Roll, Pitch, and Yaw with RMSE calculations.
+  - **ATT:** Roll, Pitch, and Yaw with RMSE (Root Mean Squared Error) calculations.
   - **VIBE:** Vibrations for all IMU instances with vibration limits.
   - **BAT:** Voltage and current monitoring with ESC current and voltage limits.
   - **MAG:** Compass interference analysis.
@@ -25,7 +25,7 @@ A Python-based tool for automated analysis and visualisation of ArduPilot DataFl
 
 ## Usage
 
-````python
+```python
 from ArduPilotLogReviewer import ArduPilotLogReviewer
 
 filedate = "YYYY-MM-DD"
@@ -52,5 +52,5 @@ reviewer.plot_compass_interference()
 reviewer.plot_gps()
 reviewer.plot_baro()
 reviewer.save_summary()
-reviewer.plot_filter_review()```
-````
+reviewer.plot_filter_review()
+```
