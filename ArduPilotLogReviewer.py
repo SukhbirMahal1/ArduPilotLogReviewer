@@ -229,8 +229,8 @@ class ArduPilotLogReviewer:
 
             plt.subplot(2, df['I'].nunique(), i + 1)
             plt.plot(idx['TimeUS'] / 1e6, idx['GyrX'], label=f'IMU[{i}].GyrX')
-            plt.plot(idx['TimeUS'] / 1e6, idx['GyrY'], label=f'IMU[{i}].GyrX')
-            plt.plot(idx['TimeUS'] / 1e6, idx['GyrZ'], label=f'IMU[{i}].GyrX')
+            plt.plot(idx['TimeUS'] / 1e6, idx['GyrY'], label=f'IMU[{i}].GyrY')
+            plt.plot(idx['TimeUS'] / 1e6, idx['GyrZ'], label=f'IMU[{i}].GyrZ')
             plt.xlabel('Time [s]')
             plt.ylabel('[rad/s]')
             plt.grid(1)
