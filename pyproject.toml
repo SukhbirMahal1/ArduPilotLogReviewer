@@ -7,9 +7,9 @@ name = "ArduPilotLogReviewer"
 version = "0.1.0"
 description = "A Python-based tool for automated analysis and visualisation of ArduPilot DataFlash logs."
 authors = [{name = "Sukhbir Mahal"}]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
-    "numpy>=2.1.0",
+    "numpy",
     "matplotlib",
     "pandas",
     "pymavlog",
