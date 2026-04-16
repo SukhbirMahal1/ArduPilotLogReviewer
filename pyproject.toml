@@ -9,7 +9,7 @@ description = "A Python-based tool for automated analysis and visualisation of A
 authors = [{name = "Sukhbir Mahal"}]
 requires-python = ">=3.13"
 dependencies = [
-    "numpy",
+    "numpy>=2.1.0",
     "matplotlib",
     "pandas",
     "pymavlog",
