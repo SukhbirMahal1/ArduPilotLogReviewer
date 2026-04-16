@@ -1,0 +1,6 @@
+.conda
+*.bin
+*.png
+*.csv
+*.txt
+__pycache__

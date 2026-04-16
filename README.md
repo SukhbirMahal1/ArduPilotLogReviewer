@@ -25,12 +25,12 @@ A Python-based tool for automated analysis and visualisation of ArduPilot DataFl
 
 ## Usage
 
-````python
+```python
 from ArduPilotLogReviewer import ArduPilotLogReviewer
 
 filedate = "YYYY-MM-DD"
 filepath = f"logs/{filedate}.BIN"
-MOTOR_RCOU_CH = [1, 2, 3]
+MOTOR_RCOU_CH = []
 
 reviewer = ArduPilotLogReviewer(
     filedate=filedate,
@@ -38,7 +38,7 @@ reviewer = ArduPilotLogReviewer(
     MOTOR_RCOU_CH=MOTOR_RCOU_CH,
     auto_detect_flight=True,
     save_plots=True,
-    show_plots=False
+    show_plots=True
 )
 
 reviewer.plot_att()
@@ -52,5 +52,5 @@ reviewer.plot_compass_interference()
 reviewer.plot_gps()
 reviewer.plot_baro()
 reviewer.save_summary()
-reviewer.plot_filter_review()```
-````
+reviewer.plot_filter_review()
+```
