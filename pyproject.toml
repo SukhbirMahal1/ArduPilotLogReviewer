@@ -15,3 +15,6 @@ dependencies = [
     "pymavlog",
     "scipy",
 ]
+
+[project.scripts]
+review-logs = "ardupilot_log_reviewer.cli:main"
