@@ -25,7 +25,7 @@ A Python-based tool for automated analysis and visualisation of ArduPilot DataFl
 
 ## Usage
 
-````python
+```python
 from ArduPilotLogReviewer import ArduPilotLogReviewer
 
 filedate = "YYYY-MM-DD"
