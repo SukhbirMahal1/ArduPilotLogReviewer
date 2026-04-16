@@ -2,34 +2,22 @@
 
 A Python-based tool for automated analysis and visualisation of ArduPilot DataFlash logs.
 
-## Features
+## Installation
 
-- **Automated Flight Detection:** Detects flight start and end times based on motor output.
-- **Plotting:**
-  - **ATT:** Roll, Pitch, and Yaw with RMSE (Root Mean Squared Error) calculations.
-  - **VIBE:** Vibrations for all IMU instances with vibration limits.
-  - **BAT:** Voltage and current monitoring with ESC current and voltage limits.
-  - **MAG:** Compass interference analysis.
-  - **GPS & BARO:** Signal quality with quality limits and altitude tracking.
-  - **Filter Review:** Harmonic notch filter simulation and PSD (Power Spectral Density) analysis.
-- **Export:** Automatically saves processed data to .csv and plots to .png.
-- **Summary:** Produces a .txt flight summary with warnings for exceeded limits.
+Installation with pip:
 
-## Dependencies
-
-- `numpy`
-- `matplotlib`
-- `pandas`
-- `scipy`
-- `pymavlog`
+```bash
+pip install -r requirements.txt
+pip install -e .
+```
 
 ## Usage
 
 ```python
-from ArduPilotLogReviewer import ArduPilotLogReviewer
+from ardupilot_log_reviewer.ArduPilotLogReviewer import ArduPilotLogReviewer
 
 filedate = "YYYY-MM-DD"
-filepath = f"logs/{filedate}.BIN"
+filepath = "path/to/your/log.BIN"
 MOTOR_RCOU_CH = []
 
 reviewer = ArduPilotLogReviewer(

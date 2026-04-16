@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: ArduPilotLogReviewer
+Version: 0.1.0
+Summary: A Python-based tool for automated analysis and visualisation of ArduPilot DataFlash logs.
+Author: Sukhbir Mahal
+Requires-Python: >=3.13
+Requires-Dist: numpy
+Requires-Dist: matplotlib
+Requires-Dist: pandas
+Requires-Dist: pymavlog
+Requires-Dist: scipy
+Dynamic: author
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
