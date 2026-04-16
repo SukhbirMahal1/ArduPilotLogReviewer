@@ -13,13 +13,13 @@ class ArduPilotLogReviewer:
         self.auto_detect_flight = auto_detect_flight
         self.T_MIN = T_MIN
         self.T_MAX = T_MAX
+        self.ESC_CONT_A = ESC_CONT_A
+        self.ESC_BURST_A = ESC_BURST_A
         self.save_plots = save_plots
         self.show_plots = show_plots
 
         # constants
         self.DES_HOVER_PWM = (1600, 1700)
-        self.ESC_CONT_A = ESC_CONT_A
-        self.ESC_BURST_A = ESC_BURST_A
 
         # directories
         os.makedirs(f'csvs/{self.filedate}', exist_ok=True)
