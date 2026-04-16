@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ArduPilotLogReviewer"
+version = "0.1.0"
+description = "A Python-based tool for automated analysis and visualisation of ArduPilot DataFlash logs."
+authors = [{name = "Sukhbir Mahal"}]
+requires-python = ">=3.13"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "pandas",
+    "pymavlog",
+    "scipy",
+]
