@@ -25,7 +25,7 @@ A Python-based tool for automated analysis and visualisation of ArduPilot DataFl
 
 ## Usage
 
-```python
+````python
 from ArduPilotLogReviewer import ArduPilotLogReviewer
 
 filedate = "YYYY-MM-DD"
@@ -52,5 +52,5 @@ reviewer.plot_compass_interference()
 reviewer.plot_gps()
 reviewer.plot_baro()
 reviewer.save_summary()
-reviewer.plot_filter_review()
-```
+reviewer.plot_filter_review()```
+````
