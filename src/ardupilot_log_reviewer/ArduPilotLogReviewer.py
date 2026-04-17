@@ -42,12 +42,7 @@ class ArduPilotLogReviewer:
             print(f"Flight Window: {self.T_MIN:.1f}s - {self.T_MAX:.1f}s (Duration: {self.T_MAX - self.T_MIN:.1f}s)")
 
     def get_msg(self, msg:str):
-        # df = pd.DataFrame(self.mavlog.get(msg).fields)
-        m = self.mavlog.get(msg)
-            
-        raw_messages = [msg_obj.to_dict() for msg_obj in m.messages]
-        df = pd.DataFrame(raw_messages)
-
+        df = pd.DataFrame(self.mavlog.get(msg).fields)
         if msg != 'PARM':
             df = df[(df['TimeUS'] / 1e6 >= self.T_MIN) & (df['TimeUS'] / 1e6 <= self.T_MAX)]
         else:

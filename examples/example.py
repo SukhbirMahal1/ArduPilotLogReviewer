@@ -1,6 +1,6 @@
 from ardupilot_log_reviewer import ArduPilotLogReviewer
 
-filedate = "2026-03-26"
+filedate = "2026-03-27"
 filepath = f"logs/{filedate}.BIN"
 MOTOR_RCOU_CH = [10, 11, 12]
 
