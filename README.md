@@ -18,6 +18,8 @@ pip install -e .
 
 ## Usage
 
+Normal log review:
+
 ```python
 from ardupilot_log_reviewer import ArduPilotLogReviewer
 
@@ -30,8 +32,6 @@ reviewer = ArduPilotLogReviewer(
     filepath=filepath,
     MOTOR_RCOU_CH=MOTOR_RCOU_CH,
     auto_detect_flight=True,
-    save_plots=True,
-    show_plots=True
 )
 
 reviewer.plot_att()
@@ -45,5 +45,23 @@ reviewer.plot_compass_interference()
 reviewer.plot_gps()
 reviewer.plot_baro()
 reviewer.save_summary()
+```
+
+Filter review:
+
+```python
+from ardupilot_log_reviewer import ArduPilotLogReviewer
+
+filedate = "YYYY-MM-DD"
+filepath = "path/to/your/log.BIN"
+MOTOR_RCOU_CH = []
+
+reviewer = ArduPilotLogReviewer(
+    filedate=filedate,
+    filepath=filepath,
+    MOTOR_RCOU_CH=MOTOR_RCOU_CH,
+    auto_detect_flight=True,
+)
+
 reviewer.plot_filter_review()
 ```
