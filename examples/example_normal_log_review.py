@@ -14,7 +14,8 @@ reviewer = ArduPilotLogReviewer(
     ESC_CONT_A=70,
     ESC_BURST_A=80,
     save_plots=True,
-    show_plots=False
+    show_plots=True,
+    verbose=True
 )
 
 reviewer.plot_att()
@@ -28,5 +29,3 @@ reviewer.plot_compass_interference()
 reviewer.plot_gps()
 reviewer.plot_baro()
 reviewer.save_summary()
-reviewer.plot_filter_review()
-reviewer.plot_filter_review(tune=True, notch_freq=80, bw=80/2, att=10)
