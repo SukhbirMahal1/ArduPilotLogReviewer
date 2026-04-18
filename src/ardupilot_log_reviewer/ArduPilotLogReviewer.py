@@ -79,7 +79,7 @@ class ArduPilotLogReviewer:
         msg = 'ATT'
         print(f'Plotting '+msg+'...')
         df = self.get_msg(msg=msg)
-        self.save_csv(df, msg)
+        self._save_csv(df, msg)
 
         error_roll = df['Roll'] - df['DesRoll']
         error_pitch = df['Pitch'] - df['DesPitch']
@@ -118,7 +118,7 @@ class ArduPilotLogReviewer:
         plt.grid(1)
         plt.legend()
 
-        self.save_plot(msg)
+        self._save_plot(msg)
     
     def plot_vibes(self):
         msg = 'VIBE'
@@ -130,7 +130,7 @@ class ArduPilotLogReviewer:
         
         for i, idx in imu_groups:
             idx = idx.reset_index(drop=True)
-            self.save_csv(idx, msg+f'[{i}]')
+            self._save_csv(idx, msg+f'[{i}]')
             plt.subplot(1, df['IMU'].nunique(), i + 1)
             plt.plot(idx['TimeUS'] / 1e6, idx['VibeX'], label=f'IMU[{i}].VibeX')
             plt.plot(idx['TimeUS'] / 1e6, idx['VibeY'], label=f'IMU[{i}].VibeY')
@@ -141,13 +141,13 @@ class ArduPilotLogReviewer:
             plt.grid(1)
             plt.legend()
 
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_rcou(self):
         msg = 'RCOU'
         print(f'Plotting '+msg+'...')
         df = self.get_msg(msg=msg)
-        self.save_csv(df, msg)
+        self._save_csv(df, msg)
 
         plt.figure(figsize=(7, 2))
 
@@ -160,7 +160,7 @@ class ArduPilotLogReviewer:
         plt.ylabel('PWM [$\mu$s]')
         plt.grid(1)
         plt.legend()
-        self.save_plot(msg)
+        self._save_plot(msg)
     
     def plot_esc(self):
         msg = 'ESC'
@@ -172,7 +172,7 @@ class ArduPilotLogReviewer:
 
         for i, idx in esc_groups:
             idx = idx.reset_index(drop=True)
-            self.save_csv(idx, f"ESC[{i}].RPM")
+            self._save_csv(idx, f"ESC[{i}].RPM")
 
             plt.plot(idx['TimeUS'] / 1e6, idx['RPM'], label=f'ESC[{i}].RPM')
             
@@ -181,7 +181,7 @@ class ArduPilotLogReviewer:
         plt.grid(1)
         plt.legend()
             
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_bat(self):
         msg = 'BAT'
@@ -200,7 +200,7 @@ class ArduPilotLogReviewer:
 
         for i, idx in bat_groups:
             idx = idx.reset_index(drop=True)
-            self.save_csv(idx, msg+f'[{i}]')
+            self._save_csv(idx, msg+f'[{i}]')
 
             plt.subplot(1, 2, 1)
             plt.plot(idx['TimeUS'] / 1e6, idx['VoltR'], label=f'BAT[{i}].VoltR')
@@ -218,7 +218,7 @@ class ArduPilotLogReviewer:
             plt.grid(1)
             plt.legend()
             
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_imus(self):
         msg = 'IMU'
@@ -230,7 +230,7 @@ class ArduPilotLogReviewer:
 
         for i, idx in imu_groups:
             idx = idx.reset_index(drop=True)
-            self.save_csv(idx, msg+f'[{i}]')
+            self._save_csv(idx, msg+f'[{i}]')
 
             plt.subplot(2, df['I'].nunique(), i + 1)
             plt.plot(idx['TimeUS'] / 1e6, idx['GyrX'], label=f'IMU[{i}].GyrX')
@@ -250,13 +250,13 @@ class ArduPilotLogReviewer:
             plt.grid(1)
             plt.legend()
             
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_powr(self):
         msg = 'POWR'
         print(f'Plotting '+msg+'...')
         df = self.get_msg(msg=msg)
-        self.save_csv(df, msg)
+        self._save_csv(df, msg)
 
         plt.figure(figsize=(7, 2))
         plt.plot(df['TimeUS'] / 1e6, df['Vcc'], label=msg+'.Vcc')
@@ -266,7 +266,7 @@ class ArduPilotLogReviewer:
         plt.ylabel("Voltage [V]")
         plt.grid(1)
         plt.legend()
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_compass_interference(self):
         msg = 'MAG'
@@ -311,7 +311,7 @@ class ArduPilotLogReviewer:
                 "Throttle": throttle,
             })
 
-            self.save_csv(mag_df, msg+f'[{i}]')
+            self._save_csv(mag_df, msg+f'[{i}]')
 
             plt.subplot(1, df['I'].nunique(), i + 1)
             plt.plot(idx['TimeUS'] / 1e6, mag_field, label=f'MAG[{i}] Field Strength [mGauss]')
@@ -323,7 +323,7 @@ class ArduPilotLogReviewer:
             plt.legend()
             plt.title(f'MAG[{i}] Interference {assessment}: {mag_interference_max:.1f}%', color=color)
         
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_gps(self):
         msg = 'GPS'
@@ -335,7 +335,7 @@ class ArduPilotLogReviewer:
 
         for i, idx in gps_groups:
             idx = idx.reset_index(drop=True)
-            self.save_csv(idx, msg+f"[{i}]")
+            self._save_csv(idx, msg+f"[{i}]")
 
             plt.subplot(2, df['I'].nunique(), i + 1)
             plt.plot(idx['TimeUS'] / 1e6, idx['HDop'], label=f'GPS[{i}].HDop]')
@@ -354,7 +354,7 @@ class ArduPilotLogReviewer:
             plt.grid(1)
             plt.legend()
 
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_baro(self):
         msg = 'BARO'
@@ -366,7 +366,7 @@ class ArduPilotLogReviewer:
 
         for i, idx in gps_groups:
             idx = idx.reset_index(drop=True)
-            self.save_csv(idx, msg+f"[{i}]")
+            self._save_csv(idx, msg+f"[{i}]")
 
             plt.subplot(1, df['I'].nunique(), i + 1)
             plt.plot(idx['TimeUS'] / 1e6, idx['Alt'], label=f'BARO[{i}].Alt]')
@@ -376,7 +376,7 @@ class ArduPilotLogReviewer:
             plt.grid(1)
             plt.legend()
 
-        self.save_plot(msg)
+        self._save_plot(msg)
 
     def plot_filter_review(self, target_instance:int=0, tune:bool=False, gyro_freq:int=None, notch_freq:int=None, bw:float=None, att:int=None, hmncs:int=None):
         print('Filter Review... (BETA)')
@@ -523,7 +523,7 @@ class ArduPilotLogReviewer:
             'post_z': post_z,
         })
 
-        self.save_csv(filter_review_df, f'FILTER_REVIEW_TUNE_{tune}')
+        self._save_csv(filter_review_df, f'FILTER_REVIEW_TUNE_{tune}')
 
         plt.figure(figsize=(28, 8))
         plt.plot(freq_x, pre_x, label='X Pre-filter')
@@ -536,9 +536,9 @@ class ArduPilotLogReviewer:
         plt.ylabel('Amplitude [dB]')
         plt.grid(1)
         plt.legend()
-        self.save_plot(f'FILTER_REVIEW_TUNE_{tune}')           
+        self._save_plot(f'FILTER_REVIEW_TUNE_{tune}')           
 
-    def save_plot(self, name):
+    def _save_plot(self, name):
         if self.save_plots:
             print(f'Saving Plot {name}_{self.filedate}.png...')
             filepath = f"plots/{self.filedate}/{name}_{self.filedate}.png"
@@ -547,7 +547,7 @@ class ArduPilotLogReviewer:
         elif self.show_plots:
             plt.show()
 
-    def save_csv(self, df, name):
+    def _save_csv(self, df, name):
         print(f'Saving CSV {name}_{self.filedate}.csv...')
         filepath = f"csvs/{self.filedate}/{name}_{self.filedate}.csv"
         df = df.copy()
@@ -557,7 +557,7 @@ class ArduPilotLogReviewer:
 
         df.to_csv(filepath, index=False)
 
-    def generate_summary(self):
+    def _generate_summary(self):
         print('Generating Summary...')
         summary_lines = []
 
@@ -663,7 +663,7 @@ class ArduPilotLogReviewer:
         return summary_lines
     
     def save_summary(self):
-        summary = self.generate_summary()
+        summary = self._generate_summary()
 
         filepath = f"summaries/{self.filedate}/SUMMARY_{self.filedate}.txt"
 
