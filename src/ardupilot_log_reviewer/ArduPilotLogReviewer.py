@@ -372,13 +372,14 @@ class ArduPilotLogReviewer:
             plt.plot(idx['TimeUS'] / 1e6, idx['Alt'], label=f'BARO[{i}].Alt]')
             plt.xlabel('Time [s]')
             plt.ylabel('Altitude [m]')
+            plt.title(f'Delta: {idx['Alt'].max() - idx['Alt'].min():.1f} m')
             plt.grid(1)
             plt.legend()
 
         self.save_plot(msg)
 
     def plot_filter_review(self, target_instance:int=0, tune:bool=False, gyro_freq:int=None, notch_freq:int=None, bw:float=None, att:int=None, hmncs:int=None):
-        print('Filter Review...')
+        print('Filter Review... (BETA)')
         isbh = self.get_msg('ISBH')
         isbd = self.mavlog.get('ISBD').fields 
 
@@ -479,8 +480,7 @@ class ArduPilotLogReviewer:
 
             for harmonic in harmonics:
                 center = ins_hntch_freq * harmonic  
-                bw_h = ins_hntch_bw * harmonic
-                Q = center / bw_h
+                Q = center / ins_hntch_bw
                 b_notch, a_notch = signal.iirnotch(center, Q, fs=fs)
                 _, h_notch = signal.freqz(b_notch, a_notch, worN=freq, fs=fs)
 
