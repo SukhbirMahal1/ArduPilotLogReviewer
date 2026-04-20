@@ -10,7 +10,16 @@ class ArduPilotFilterReviewer:
     # constants
     MAX_NUM_HARMONICS = 16
 
-    def __init__(self, mavlog, notch_freq, notch_bandwith, notch_att, filter_version:int=2, tune:bool=False, autotune:bool=False):
+    def __init__(self, 
+                 mavlog, 
+                 notch_freq, 
+                 notch_bandwith, 
+                 notch_att, 
+                 filter_version:int=2, 
+                 tune:bool=False, 
+                 autotune:bool=False, 
+                 verbose:bool=True):
+        
         self.mavlog         = mavlog
         self.notch_freq     = notch_freq
         self.notch_bandwith = notch_bandwith 
@@ -18,6 +27,7 @@ class ArduPilotFilterReviewer:
         self.filter_version = filter_version
         self.tune           = tune
         self.autotune       = autotune
+        self.verbose        = verbose
 
         # build params dict from log
         params           = pd.DataFrame(self.mavlog.get('PARM').fields)
@@ -44,7 +54,7 @@ class ArduPilotFilterReviewer:
 
         pre_x, pre_y, pre_z, post_x, post_y, post_z = self._estimate_pre_post(fft_result, H, window_size, rate)
 
-        self._plot(bins, pre_x, pre_y, pre_z, post_x, post_y, post_z)
+        return self._plot(bins, pre_x, pre_y, pre_z, post_x, post_y, post_z)
 
     def _parse_gyro(self, target_instance: int):
         isbh     = pd.DataFrame(self.mavlog.get('ISBH').fields)
@@ -559,6 +569,18 @@ class ArduPilotFilterReviewer:
         handles, labels = plt.gca().get_legend_handles_labels()
         plt.legend(handles=handles + custom_handles, labels=labels + [h.get_label() for h in custom_handles])
 
+        df = pd.DataFrame({
+            'frequency_hz': bins,
+            'pre_x':        pre_x,
+            'pre_y':        pre_y,
+            'pre_z':        pre_z,
+            'post_x':       post_x,
+            'post_y':       post_y,
+            'post_z':       post_z,
+        })
+        
+        return df
+
     def _detect_motor_frequency(self, bins, pre_x, pre_y, pre_z, min_freq=50, max_freq=400):
         # average across all three axes
         pre_avg = (pre_x + pre_y + pre_z) / 3
@@ -572,13 +594,15 @@ class ArduPilotFilterReviewer:
         peak_indices, _ = signal.find_peaks(pre_masked)
 
         if len(peak_indices) == 0:
-            print('No motor frequency peak detected.')
+            if self.verbose:
+                print('No motor frequency peak detected.')
             return None
 
         # pick the peak with the highest amplitude
         best_peak_idx = peak_indices[np.argmax(pre_masked[peak_indices])]
         motor_freq    = bins_masked[best_peak_idx]
 
-        print(f'Detected Motor Frequency: {motor_freq:.1f} Hz')
+        if self.verbose:
+            print(f'Detected Motor Frequency: {motor_freq:.1f} Hz')
 
         return motor_freq

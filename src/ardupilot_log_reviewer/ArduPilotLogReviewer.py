@@ -403,14 +403,17 @@ class ArduPilotLogReviewer:
             notch_freq=notch_freq,
             notch_bandwith=notch_bandwith,
             notch_att=notch_att,
-            autotune=autotune
+            autotune=autotune,
+            verbose=self.verbose
             )
 
-        filter_reviewer.plot_filter_review(target_instance=target_instance)
+        df = filter_reviewer.plot_filter_review(target_instance=target_instance)
         if autotune:
             self._save_plot(f'FILTER_REVIEW_AUTOTUNE')
+            self._save_csv(df, 'FILTER_REVIEW_AUTOTUNE')
         else:
-            self._save_plot(f'FILTER_REVIEW_TUNE_{tune}')  
+            self._save_plot(f'FILTER_REVIEW_TUNE_{tune}')
+            self._save_csv(df, f'FILTER_REVIEW_TUNE_{tune}')
 
     def save_summary(self):
         summary = self._generate_summary()
