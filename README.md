@@ -3,6 +3,7 @@
 A Python-based tool for automated analysis and visualisation of ArduPilot DataFlash logs.
 
 ![python](https://img.shields.io/badge/python-3.11--3.12-blue)
+![jupyter](https://img.shields.io/badge/jupyter-notebook-orange)
 
 ## Installation
 
