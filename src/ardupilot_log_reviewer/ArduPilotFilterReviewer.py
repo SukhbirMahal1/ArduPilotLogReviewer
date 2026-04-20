@@ -10,13 +10,14 @@ class ArduPilotFilterReviewer:
     # constants
     MAX_NUM_HARMONICS = 16
 
-    def __init__(self, mavlog, notch_freq, notch_bandwith, notch_att, filter_version:int=2, tune:bool=False):
+    def __init__(self, mavlog, notch_freq, notch_bandwith, notch_att, filter_version:int=2, tune:bool=False, autotune:bool=False):
         self.mavlog         = mavlog
         self.notch_freq     = notch_freq
         self.notch_bandwith = notch_bandwith 
         self.notch_att      = notch_att
         self.filter_version = filter_version
         self.tune           = tune
+        self.autotune       = autotune
 
         # build params dict from log
         params           = pd.DataFrame(self.mavlog.get('PARM').fields)
@@ -28,7 +29,18 @@ class ArduPilotFilterReviewer:
         rate        = gyro_data['sample_rate']
 
         bins, fft_result, time = self._run_batch_fft(gyro_data, window_size)
-        H                      = self._calculate_transfer_function(bins, time, rate)
+
+        if self.autotune:
+            H_                              = self._calculate_transfer_function(bins, time, rate)
+            pre_x_, pre_y_, pre_z_, _, _, _ = self._estimate_pre_post(fft_result, H_, window_size, rate)
+            self.motor_freq                 = self._detect_motor_frequency(bins, pre_x_, pre_y_, pre_z_)
+            if self.motor_freq is not None:
+                self.notch_freq = self.motor_freq
+                self.tune       = True  # so _load_filters applies the override
+            else:
+                self.motor_freq = None
+
+        H = self._calculate_transfer_function(bins, time, rate)
 
         pre_x, pre_y, pre_z, post_x, post_y, post_z = self._estimate_pre_post(fft_result, H, window_size, rate)
 
@@ -499,7 +511,7 @@ class ArduPilotFilterReviewer:
 
         return pre_x, pre_y, pre_z, post_x, post_y, post_z
 
-    def _plot(self, bins, pre_x, pre_y, pre_z, post_x, post_y, post_z):
+    def _plot(self, bins, pre_x, pre_y, pre_z, post_x, post_y, post_z):        
         plt.figure(figsize=(28, 8))
 
         hnotch_params_list = self._get_hnotch_param_names()
@@ -512,7 +524,9 @@ class ArduPilotFilterReviewer:
             bw = float(self.params_dict.get(hnotch['bandwidth']))
             harmonics = int(self.params_dict.get(hnotch['harmonics']))
 
-            if self.tune:
+            if self.autotune and self.motor_freq is not None:
+                notch_freq_ = self.motor_freq
+            elif self.tune:
                 notch_freq_ = self.notch_freq     if self.notch_freq     is not None else notch_freq_
                 bw          = self.notch_bandwith if self.notch_bandwith is not None else bw
 
@@ -541,5 +555,30 @@ class ArduPilotFilterReviewer:
             Line2D([0], [0], color='red', linestyle='--', label='Harmonic Notch Frequency'),
             Patch(facecolor='gray', alpha=0.3, label='Harmonic Notch Bandwidth'),
         ]
+        
         handles, labels = plt.gca().get_legend_handles_labels()
         plt.legend(handles=handles + custom_handles, labels=labels + [h.get_label() for h in custom_handles])
+
+    def _detect_motor_frequency(self, bins, pre_x, pre_y, pre_z, min_freq=50, max_freq=400):
+        # average across all three axes
+        pre_avg = (pre_x + pre_y + pre_z) / 3
+
+        # restrict search to frequency range of interest
+        freq_mask   = (bins >= min_freq) & (bins <= max_freq)
+        bins_masked = bins[freq_mask]
+        pre_masked  = pre_avg[freq_mask]
+
+        # find all peaks
+        peak_indices, _ = signal.find_peaks(pre_masked)
+
+        if len(peak_indices) == 0:
+            print('No motor frequency peak detected.')
+            return None
+
+        # pick the peak with the highest amplitude
+        best_peak_idx = peak_indices[np.argmax(pre_masked[peak_indices])]
+        motor_freq    = bins_masked[best_peak_idx]
+
+        print(f'Detected Motor Frequency: {motor_freq:.1f} Hz')
+
+        return motor_freq
