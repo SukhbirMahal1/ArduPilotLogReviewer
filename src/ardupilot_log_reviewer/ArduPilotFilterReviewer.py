@@ -225,7 +225,7 @@ class ArduPilotFilterReviewer:
 
         # load harmonics notches
         filters_notch = []
-        for hnotch in hnotch_params:
+        for i, hnotch in enumerate(hnotch_params):
             params = {}
             for key, param_name in hnotch.items():
                 value = self.params_dict.get(param_name)
@@ -235,7 +235,7 @@ class ArduPilotFilterReviewer:
             params['harmonics'] = int(params['harmonics'])
             params['options']   = int(params['options'])
 
-            if self.tune:
+            if self.tune and i == 0: # only apply tuning to INS_HNTCH_, not INS_HNTC2_
                 params['freq']        = self.notch_freq     if self.notch_freq     is not None else params['freq']
                 params['bandwidth']   = self.notch_bandwith if self.notch_bandwith is not None else params['bandwidth']
                 params['attenuation'] = self.notch_att      if self.notch_att      is not None else params['attenuation']
@@ -524,9 +524,9 @@ class ArduPilotFilterReviewer:
             bw = float(self.params_dict.get(hnotch['bandwidth']))
             harmonics = int(self.params_dict.get(hnotch['harmonics']))
 
-            if self.autotune and self.motor_freq is not None:
+            if self.autotune and self.motor_freq is not None and notch_idx == 0:
                 notch_freq_ = self.motor_freq
-            elif self.tune:
+            elif self.tune and notch_idx == 0:
                 notch_freq_ = self.notch_freq     if self.notch_freq     is not None else notch_freq_
                 bw          = self.notch_bandwith if self.notch_bandwith is not None else bw
 
