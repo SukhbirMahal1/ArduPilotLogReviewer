@@ -1,17 +1,28 @@
 # ArduPilot Log Reviewer
 
+![python](https://img.shields.io/badge/python-3.9--3.12-blue)
+![jupyter](https://img.shields.io/badge/jupyter-notebook-orange)
+
 A Python-based tool for automated analysis and visualisation of ArduPilot DataFlash logs.
 
 ## Installation
 
-Installation with pip:
+![Terminal](https://badgen.net/badge/icon/terminal?icon=terminal&label)
+[![git](https://badgen.net/badge/icon/git?icon=git&label)](https://git-scm.com)
 
+Clone the GitHub repository:
+
+```bash
+git clone https://github.com/SukhbirMahal1/ArduPilotLogReviewer.git
+cd ArduPilotLogReviewer
+```
+
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-Or:
-
+Or install as an editable package:
 ```bash
 pip install -e .
 ```
