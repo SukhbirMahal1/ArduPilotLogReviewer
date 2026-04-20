@@ -405,7 +405,7 @@ class ArduPilotLogReviewer:
             )
 
         filter_reviewer.plot_filter_review(target_instance=target_instance)
-        self._save_plot(f'FILTER_REVIEW_TUNE_{tune}_{self.filedate}')  
+        self._save_plot(f'FILTER_REVIEW_TUNE_{tune}')  
 
     def save_summary(self):
         summary = self._generate_summary()

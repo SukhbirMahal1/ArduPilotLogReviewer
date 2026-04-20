@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pymavlog import MavLog
 from scipy import signal
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 
 class ArduPilotFilterReviewer:
     # constants
@@ -534,4 +536,10 @@ class ArduPilotFilterReviewer:
         plt.xlabel('Frequency [Hz]')
         plt.ylabel('Amplitude [dB]')
         plt.grid(True)
-        plt.legend()
+
+        custom_handles = [
+            Line2D([0], [0], color='red', linestyle='--', label='Harmonic Notch Frequency'),
+            Patch(facecolor='gray', alpha=0.3, label='Harmonic Notch Bandwidth'),
+        ]
+        handles, labels = plt.gca().get_legend_handles_labels()
+        plt.legend(handles=handles + custom_handles, labels=labels + [h.get_label() for h in custom_handles])
