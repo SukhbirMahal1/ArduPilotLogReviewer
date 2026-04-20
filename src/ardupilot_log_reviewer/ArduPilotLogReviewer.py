@@ -59,45 +59,6 @@ class ArduPilotLogReviewer:
         
         self.rcou = self._get_msg('RCOU')
 
-    def _get_msg(self, msg:str):
-        df = pd.DataFrame(self.mavlog.get(msg).fields)
-        if msg != 'PARM':
-            df = df[(df['TimeUS'] / 1e6 >= self.T_MIN) & (df['TimeUS'] / 1e6 <= self.T_MAX)]
-        else:
-            df = df
-        return df    
-        
-    def _detect_flight_window(self):
-        msg = 'RCOU'
-        df = pd.DataFrame(self.mavlog.get(msg).fields)
-
-        pwm_min = self.parm.loc[self.parm['Name'] == f'SERVO{self.MOTOR_RCOU_CH[0]}_MIN', 'Value'].iloc[0]
-        pwm_max = self.parm.loc[self.parm['Name'] == f'SERVO{self.MOTOR_RCOU_CH[0]}_MAX', 'Value'].iloc[0]
-        pwm = df[f'C{self.MOTOR_RCOU_CH[0]}']
-
-        time_us = df['TimeUS'].values / 1e6
-        
-        threshold = pwm_min + 0.1 * (pwm_max - pwm_min)
-        above_threshold = pwm > threshold
-        
-        diff = np.diff(above_threshold.astype(int))
-        rise_indices = np.where(diff == 1)[0] + 1  
-        fall_indices = np.where(diff == -1)[0]    
-
-        if len(rise_indices) == 0 or len(fall_indices) == 0:
-            raise ValueError('Could not detect flight window')
-        
-        flight_start_idx = rise_indices[0]
-        flight_end_idx = fall_indices[-1]
-        
-        T_MIN = time_us[flight_start_idx]
-        T_MAX = time_us[flight_end_idx]
-        
-        if self.verbose:
-            print(f'Flight Window Detected: {T_MIN:.1f}s - {T_MAX:.1f}s (Duration: {T_MAX - T_MIN:.1f}s)')
-        
-        return [T_MIN, T_MAX]
-    
     def plot_att(self):
         msg = 'ATT'
         if self.verbose:
@@ -224,7 +185,6 @@ class ArduPilotLogReviewer:
             bat_volt_min = self.parm.query("Name == 'Q_M_BAT_VOLT_MIN'")['Value'].iloc[0]
             bat_volt_min_label = 'Q_M_BAT_VOLT_MIN'
         except:
-            # Same logic here
             bat_volt_min = self.parm.query("Name == 'MOT_BAT_VOLT_MIN'")['Value'].iloc[0]
             bat_volt_min_label = 'MOT_BAT_VOLT_MIN'
 
@@ -427,13 +387,79 @@ class ArduPilotLogReviewer:
 
         self._save_plot(msg)
 
-    def plot_filter_review(self, target_instance:int=0):
+    def plot_filter_review(self, 
+                           target_instance:int=0, 
+                           tune:bool=False, 
+                           notch_freq=None, 
+                           notch_bandwith=None,
+                           notch_att=None):
         if self.verbose:
             print('Plotting Filter Review...')
 
-        filter_reviewer = ArduPilotFilterReviewer(self.mavlog)
+        filter_reviewer = ArduPilotFilterReviewer(
+            self.mavlog,
+            tune=tune,
+            notch_freq=notch_freq,
+            notch_bandwith=notch_bandwith,
+            notch_att=notch_att,
+            )
+
         filter_reviewer.plot_filter_review(target_instance=target_instance)
-        self._save_plot(f'FILTER_REVIEW_TUNE')           
+        self._save_plot(f'FILTER_REVIEW_TUNE_{tune}_{self.filedate}')  
+
+    def save_summary(self):
+        summary = self._generate_summary()
+
+        filepath = f'summaries/{self.filedate}/SUMMARY_{self.filedate}.txt'
+
+        with open(filepath, 'w') as f:
+            f.write(f'ArduPilotLogReviewer Summary\n')
+            f.write('='*40 + '\n\n')
+
+            for line in summary:
+                f.write(line + '\n')
+
+        if self.verbose:
+            print(f'Saving SUMMARY_{self.filedate}.txt...')
+
+    def _get_msg(self, msg:str):
+        df = pd.DataFrame(self.mavlog.get(msg).fields)
+        if msg != 'PARM':
+            df = df[(df['TimeUS'] / 1e6 >= self.T_MIN) & (df['TimeUS'] / 1e6 <= self.T_MAX)]
+        else:
+            df = df
+        return df    
+        
+    def _detect_flight_window(self):
+        msg = 'RCOU'
+        df = pd.DataFrame(self.mavlog.get(msg).fields)
+
+        pwm_min = self.parm.loc[self.parm['Name'] == f'SERVO{self.MOTOR_RCOU_CH[0]}_MIN', 'Value'].iloc[0]
+        pwm_max = self.parm.loc[self.parm['Name'] == f'SERVO{self.MOTOR_RCOU_CH[0]}_MAX', 'Value'].iloc[0]
+        pwm = df[f'C{self.MOTOR_RCOU_CH[0]}']
+
+        time_us = df['TimeUS'].values / 1e6
+        
+        threshold = pwm_min + 0.1 * (pwm_max - pwm_min)
+        above_threshold = pwm > threshold
+        
+        diff = np.diff(above_threshold.astype(int))
+        rise_indices = np.where(diff == 1)[0] + 1  
+        fall_indices = np.where(diff == -1)[0]    
+
+        if len(rise_indices) == 0 or len(fall_indices) == 0:
+            raise ValueError('Could not detect flight window')
+        
+        flight_start_idx = rise_indices[0]
+        flight_end_idx = fall_indices[-1]
+        
+        T_MIN = time_us[flight_start_idx]
+        T_MAX = time_us[flight_end_idx]
+        
+        if self.verbose:
+            print(f'Flight Window Detected: {T_MIN:.1f}s - {T_MAX:.1f}s (Duration: {T_MAX - T_MIN:.1f}s)')
+        
+        return [T_MIN, T_MAX]         
 
     def _save_plot(self, name):
         if self.save_plots:
@@ -568,18 +594,3 @@ class ArduPilotLogReviewer:
             summary_lines.append('FCU Voltage Data Unavailable')
 
         return summary_lines
-    
-    def save_summary(self):
-        summary = self._generate_summary()
-
-        filepath = f'summaries/{self.filedate}/SUMMARY_{self.filedate}.txt'
-
-        with open(filepath, 'w') as f:
-            f.write(f'ArduPilotLogReviewer Summary\n')
-            f.write('='*40 + '\n\n')
-
-            for line in summary:
-                f.write(line + '\n')
-
-        if self.verbose:
-            print(f'Summary Saved To {filepath}')

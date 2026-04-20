@@ -8,28 +8,32 @@ class ArduPilotFilterReviewer:
     # constants
     MAX_NUM_HARMONICS = 16
 
-    def __init__(self, mavlog, filter_version:int=2):
-        self.mavlog = mavlog
+    def __init__(self, mavlog, notch_freq, notch_bandwith, notch_att, filter_version:int=2, tune:bool=False):
+        self.mavlog         = mavlog
+        self.notch_freq     = notch_freq
+        self.notch_bandwith = notch_bandwith 
+        self.notch_att      = notch_att
         self.filter_version = filter_version
+        self.tune           = tune
 
         # build params dict from log
-        params = pd.DataFrame(self.mavlog.get('PARM').fields)
+        params           = pd.DataFrame(self.mavlog.get('PARM').fields)
         self.params_dict = dict(zip(params['Name'].values, params['Value'].values))
 
     def plot_filter_review(self, target_instance: int = 0):
-        gyro_data = self._parse_gyro(target_instance)
+        gyro_data   = self._parse_gyro(target_instance)
         window_size = int(self.params_dict['INS_LOG_BAT_CNT'])
-        rate = gyro_data['sample_rate']
+        rate        = gyro_data['sample_rate']
 
         bins, fft_result, time = self._run_batch_fft(gyro_data, window_size)
-        H = self._calculate_transfer_function(bins, time, rate)
+        H                      = self._calculate_transfer_function(bins, time, rate)
 
         pre_x, pre_y, pre_z, post_x, post_y, post_z = self._estimate_pre_post(fft_result, H, window_size, rate)
 
         self._plot(bins, pre_x, pre_y, pre_z, post_x, post_y, post_z)
 
     def _parse_gyro(self, target_instance: int):
-        isbh = pd.DataFrame(self.mavlog.get('ISBH').fields)
+        isbh     = pd.DataFrame(self.mavlog.get('ISBH').fields)
         isbd_raw = self.mavlog.get('ISBD').fields
 
         isbd_list = []
@@ -48,11 +52,11 @@ class ArduPilotFilterReviewer:
         x_all, y_all, z_all = [], [], []
         sample_time = None
         sample_rate = None
-        mul = None
+        mul         = None
 
         for _, header in isbh_gyro.iterrows():
-            seq    = header['N']
-            mul    = 1.0 / float(header['mul'])
+            seq         = header['N']
+            mul         = 1.0 / float(header['mul'])
             sample_rate = float(header['smp_rate'])
 
             batch = isbd_df[isbd_df['N'] == seq]
@@ -82,7 +86,7 @@ class ArduPilotFilterReviewer:
         # hard code 50% overlap
         window_overlap = 0.5
 
-        window_spacing = round(window_size * (1 - window_overlap))
+        window_spacing     = round(window_size * (1 - window_overlap))
         windowing_function = self._hanning(window_size)
 
         # average sample time
@@ -117,7 +121,7 @@ class ArduPilotFilterReviewer:
 
     def _rfft_freq(self, length, d):
         real_len = self._real_length(length)
-        freq = np.zeros(real_len)
+        freq     = np.zeros(real_len)
         for i in range(real_len):
             freq[i] = i / (length * d)
         return freq
@@ -125,7 +129,7 @@ class ArduPilotFilterReviewer:
     def _run_fft(self, data, keys, window_size, window_spacing, windowing_function):
         # compute mean pre-filter amplitude across all windows
         num_windows = int(np.floor((len(data[keys[0]]) - window_size) / window_spacing) + 1)
-        real_len = self._real_length(window_size)
+        real_len    = self._real_length(window_size)
 
         # allocate for each window
         ret = {'center': [0.0] * num_windows}
@@ -136,13 +140,13 @@ class ArduPilotFilterReviewer:
         # double positive spectrum to account for discarded energy in negative spectrum
         # note that we don't scale the DC or Nyquist limit
         # normalize all points by the window size
-        end_scale = 1 / window_size
-        mid_scale = 2 / window_size
-        scale = [mid_scale] * real_len
-        scale[0] = end_scale
+        end_scale           = 1 / window_size
+        mid_scale           = 2 / window_size
+        scale               = [mid_scale] * real_len
+        scale[0]            = end_scale
         scale[real_len - 1] = end_scale
 
-        scale = np.array(scale) # for fast multiplication 
+        scale              = np.array(scale) # for fast multiplication 
         windowing_function = np.asarray(windowing_function)
 
         for i in range(num_windows):
@@ -194,9 +198,15 @@ class ArduPilotFilterReviewer:
         filters_static = self._digital_biquad_filter(self.params_dict.get('INS_GYRO_FILTER'))
 
         defaults = {
-            'enable': 0, 'mode': 0, 'freq': 80.0, 'bandwidth': 40.0,
-            'attenuation': 40.0, 'ref': 1.0, 'min_ratio': 1.0,
-            'harmonics': 3, 'options': 0,
+            'enable'     : 0, 
+            'mode'       : 0, 
+            'freq'       : 80.0, 
+            'bandwidth'  : 80.0 / 2,
+            'attenuation': 40.0, 
+            'ref'        : 1.0, 
+            'min_ratio'  : 1.0,
+            'harmonics'  : 3, 
+            'options'    : 0,
         }
 
         # load harmonics notches
@@ -210,6 +220,11 @@ class ArduPilotFilterReviewer:
             # ensure int types for bitmask fields
             params['harmonics'] = int(params['harmonics'])
             params['options']   = int(params['options'])
+
+            if self.tune:
+                params['freq']        = self.notch_freq     if self.notch_freq     is not None else params['freq']
+                params['bandwidth']   = self.notch_bandwith if self.notch_bandwith is not None else params['bandwidth']
+                params['attenuation'] = self.notch_att      if self.notch_att      is not None else params['attenuation']
 
             filters_notch.append(self._harmonic_notch_filter(params))
 
@@ -427,10 +442,6 @@ class ArduPilotFilterReviewer:
 
         return calc(0, time, rate, Z1, Z2)
 
-    # ------------------------------------------------------------------
-    # pre/post estimate
-    # ------------------------------------------------------------------
-
     def _estimate_pre_post(self, fft_result, H, window_size, rate):
         # white noise noise model
         # https://en.wikipedia.org/wiki/Quantization_(signal_processing)#Quantization_noise_model
@@ -495,14 +506,18 @@ class ArduPilotFilterReviewer:
             if enable <= 0:
                 continue
 
-            notch_freq = float(self.params_dict.get(hnotch['freq']))
+            notch_freq_ = float(self.params_dict.get(hnotch['freq']))
             bw = float(self.params_dict.get(hnotch['bandwidth']))
             harmonics = int(self.params_dict.get(hnotch['harmonics']))
+
+            if self.tune:
+                notch_freq_ = self.notch_freq     if self.notch_freq     is not None else notch_freq_
+                bw          = self.notch_bandwith if self.notch_bandwith is not None else bw
 
             for n in range(self.MAX_NUM_HARMONICS):
                 if harmonics & (1 << n):
                     harmonic = n + 1
-                    center_freq = notch_freq * harmonic
+                    center_freq = notch_freq_ * harmonic
 
                     lower = center_freq - bw / 2.0
                     upper = center_freq + bw / 2.0
