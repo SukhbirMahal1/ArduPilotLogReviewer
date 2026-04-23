@@ -17,7 +17,7 @@ class ArduPilotFilterReviewer:
                  notch_att, 
                  filter_version:int=2, 
                  tune:bool=False, 
-                 autotune:bool=False, 
+                 autotune:bool=False, # <- this auto-tuning tool is in development 
                  verbose:bool=True):
         
         self.mavlog         = mavlog

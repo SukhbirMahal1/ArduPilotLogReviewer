@@ -188,21 +188,25 @@ class ArduPilotLogReviewer:
             bat_volt_min = self.parm.query("Name == 'MOT_BAT_VOLT_MIN'")['Value'].iloc[0]
             bat_volt_min_label = 'MOT_BAT_VOLT_MIN'
 
+        esc_num = len(self._get_msg(msg='ESC').groupby('Instance'))
+
         plt.figure(figsize=(14, 2))
 
         for i, idx in bat_groups:
             idx = idx.reset_index(drop=True)
-            self._save_csv(idx, msg+f'[{i}]')
+            idx_ = idx.copy()
+            idx_['Curr'] /= esc_num
+            self._save_csv(idx_, msg+f'[{i}]')
 
             plt.subplot(1, 2, 1)
-            plt.plot(idx['TimeUS'] / 1e6, idx['VoltR'], label=f'BAT[{i}].VoltR')
+            plt.plot(idx['TimeUS'] / 1e6, idx['Volt'], label=f'BAT[{i}].VoltR')
             plt.axhline(bat_volt_min, color='red', label=bat_volt_min_label)
             plt.xlabel('Time [s]')
             plt.ylabel('Voltage [V]')
             plt.grid(1)
             plt.legend()
             plt.subplot(1, 2, 2)
-            plt.plot(idx['TimeUS'] / 1e6, idx['Curr'], label=f'BAT[{i}].Curr')
+            plt.plot(idx['TimeUS'] / 1e6, idx['Curr'] / esc_num, label=f'BAT[{i}].Curr (Per ESC)')
             if self.ESC_CONT_A is not None:
                 plt.axhline(self.ESC_CONT_A, color='red', label='ESC Continuous Current Limit')
             if self.ESC_BURST_A is not None:
