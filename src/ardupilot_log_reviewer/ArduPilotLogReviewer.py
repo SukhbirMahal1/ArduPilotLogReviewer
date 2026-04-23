@@ -44,7 +44,22 @@ class ArduPilotLogReviewer:
         self.mavlog = MavLog(filepath=filepath)
         print(f'Parsing {filepath}...')
         self.mavlog.parse()
-        self.parm = pd.DataFrame(self.mavlog.get('PARM').fields)
+        # self.parm = pd.DataFrame(self.mavlog.get('PARM').fields)
+        try:
+            self.parm = pd.DataFrame(self.mavlog.get('PARM').fields)
+        except OverflowError:
+            # fallback: parse PARM directly with object dtype to avoid numpy overflow
+            parm_msg = self.mavlog.get('PARM')
+            parm_dict = {}
+            for idx, col in enumerate(parm_msg._columns):
+                alias = parm_msg._column_alias.get(col, col)
+                try:
+                    parm_dict[alias] = np.array(parm_msg._fields[alias], dtype=object)
+                except (OverflowError, TypeError):
+                    parm_dict[alias] = np.array(parm_msg._fields[alias], dtype=object)
+
+            self.parm = pd.DataFrame(parm_dict)
+            self.parm['Value'] = pd.to_numeric(self.parm['Value'], errors='coerce')
 
         # detect flight window
         if auto_detect_flight:
@@ -435,12 +450,30 @@ class ArduPilotLogReviewer:
             print(f'Saving SUMMARY_{self.filedate}.txt...')
 
     def _get_msg(self, msg:str):
-        df = pd.DataFrame(self.mavlog.get(msg).fields)
+        # df = pd.DataFrame(self.mavlog.get(msg).fields)
+        raw = self.mavlog.get(msg)
+        try:
+            df = pd.DataFrame(raw.fields)
+        except OverflowError:
+            # fallback: convert each column with object dtype to avoid numpy overflow
+            data = {}
+            for idx, col in enumerate(raw._columns):
+                alias = raw._column_alias.get(col, col)
+                data[alias] = np.array(raw._fields[alias], dtype=object)
+            df = pd.DataFrame(data)
+            # try to coerce numeric columns
+            for col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
         if msg != 'PARM':
             df = df[(df['TimeUS'] / 1e6 >= self.T_MIN) & (df['TimeUS'] / 1e6 <= self.T_MAX)]
-        else:
-            df = df
-        return df    
+        return df
+
+        # if msg != 'PARM':
+        #     df = df[(df['TimeUS'] / 1e6 >= self.T_MIN) & (df['TimeUS'] / 1e6 <= self.T_MAX)]
+        # else:
+        #     df = df
+        # return df    
         
     def _detect_flight_window(self):
         msg = 'RCOU'
