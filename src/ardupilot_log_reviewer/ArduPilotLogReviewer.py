@@ -214,7 +214,7 @@ class ArduPilotLogReviewer:
             self._save_csv(idx_, msg+f'[{i}]')
 
             plt.subplot(1, 2, 1)
-            plt.plot(idx['TimeUS'] / 1e6, idx['Volt'], label=f'BAT[{i}].VoltR')
+            plt.plot(idx['TimeUS'] / 1e6, idx['Volt'], label=f'BAT[{i}].Volt')
             plt.axhline(bat_volt_min, color='red', label=bat_volt_min_label)
             plt.xlabel('Time [s]')
             plt.ylabel('Voltage [V]')
