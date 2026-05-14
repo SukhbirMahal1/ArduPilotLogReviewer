@@ -3,5 +3,4 @@
 *.txt
 *.png
 .venv
-*.egg-info/
 __pycache__
