@@ -397,7 +397,7 @@ class ArduPilotLogReviewer:
             self._save_csv(idx, msg+f'[{i}]')
 
             plt.subplot(1, df['I'].nunique(), i + 1)
-            plt.plot(idx['TimeUS'] / 1e6, idx['Alt'], label=f'BARO[{i}].Alt]')
+            plt.plot(idx['TimeUS'] / 1e6, idx['Alt'], label=f'BARO[{i}].Alt')
             plt.xlabel('Time [s]')
             plt.ylabel('Altitude [m]')
             plt.title(f'Delta: {idx['Alt'].max() - idx['Alt'].min():.1f} m')
@@ -433,6 +433,23 @@ class ArduPilotLogReviewer:
         else:
             self._save_plot(f'FILTER_REVIEW_TUNE_{tune}')
             self._save_csv(df, f'FILTER_REVIEW_TUNE_{tune}')
+
+    def plot_ctun(self):
+        msg = 'CTUN'
+        if self.verbose:
+            print(f'Plotting {msg}...')
+
+        df = self._get_msg(msg=msg)
+        self._save_csv(df, msg)
+
+        plt.figure(figsize=(7, 2))
+        plt.plot(df['TimeUS'] / 1e6, df['As'], label='CTUN.As')
+        plt.xlabel('Time [s]')
+        plt.ylabel('Airspeed [m/s]')
+        plt.grid(True)
+        plt.legend()
+
+        self._save_plot(msg)
 
     def save_summary(self):
         summary = self._generate_summary()
@@ -637,5 +654,29 @@ class ArduPilotLogReviewer:
         except Exception as e:
             print(f'POWR Error: {e}')
             summary_lines.append('FCU Voltage Data Unavailable')
+
+        try:
+            PLANE_MODES = {
+            0: 'MANUAL', 1: 'CIRCLE', 2: 'STABILIZE', 3: 'TRAINING',
+            4: 'ACRO', 5: 'FLY_BY_WIRE_A', 6: 'FLY_BY_WIRE_B', 7: 'CRUISE',
+            8: 'AUTOTUNE', 10: 'AUTO', 11: 'RTL', 12: 'LOITER',
+            13: 'TAKEOFF', 14: 'AVOID_ADSB', 15: 'GUIDED', 17: 'QSTABILIZE',
+            18: 'QHOVER', 19: 'QLOITER', 20: 'QLAND', 21: 'QRTL',
+            22: 'QAUTOTUNE', 23: 'QACRO', 24: 'THERMAL', 25: 'LOITER_ALT_QLAND'
+            }
+            
+            mode_df = self._get_msg('MODE')
+            if not mode_df.empty:
+                summary_lines.append(f'Mode Transitions ({len(mode_df)}):')
+                for _, row in mode_df.iterrows():
+                    t = row['TimeUS'] / 1e6
+                    mode_num = int(row.get('Mode', row.get('ModeNum', -1)))
+                    mode_name = row.get('AsText', PLANE_MODES.get(mode_num, f'UNKNOWN({mode_num})'))
+                    summary_lines.append(f'  {t:.1f}s -> {mode_name} (Mode {mode_num})')
+            else:
+                summary_lines.append('No Mode Transitions Detected.')
+        except Exception as e:
+            print(f'MODE Error: {e}')
+            summary_lines.append('Mode Transition Data Unavailable.')
 
         return summary_lines
